@@ -1,0 +1,69 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: prisma
+  namespace: prisma
+  labels:
+    stage: production
+    name: prisma 
+    app: prisma
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        stage: production
+        name: prisma 
+        app: prisma
+    spec:
+      containers:
+        - name: mysql
+          image: 'prismagraphql/prisma:1.0'
+          ports:
+            - name: prisma-4466
+              containerPort: 4466
+          env:
+            - name: PORT
+              value: "4466"
+            - name: SQL_CLIENT_HOST_CLIENT1
+              value: "database"
+            - name: SQL_CLIENT_HOST_READONLY_CLIENT1
+              value: "database"
+            - name: SQL_CLIENT_HOST
+              value: "database"
+            - name: SQL_CLIENT_PORT
+              value: "3306"
+            - name: SQL_CLIENT_USER
+              value: "root"
+            - name: SQL_CLIENT_PASSWORD
+              value: "graphcool"
+            - name: SQL_CLIENT_CONNECTION_LIMIT
+              value: "10"
+            - name: SQL_INTERNAL_HOST
+              value: "database"
+            - name: SQL_INTERNAL_PORT
+              value: "3306"
+            - name: SQL_INTERNAL_USER
+              value: "root"
+            - name: SQL_INTERNAL_PASSWORD
+              value: "graphcool"
+            - name: SQL_INTERNAL_DATABASE
+              value: "graphcool"
+            - name: SQL_INTERNAL_CONNECTION_LIMIT
+              value: "10"
+            - name: CLUSTER_ADDRESS
+              value: "http://prisma:4466"
+            - name: BUGSNAG_API_KEY
+              value: ""
+            - name: ENABLE_METRICS
+              value: "0"
+            - name: JAVA_OPTS
+              value: "-Xmx1G"
+            - name: SCHEMA_MANAGER_SECRET
+              value: "graphcool"
+            - name: SCHEMA_MANAGER_ENDPOINT
+              value: "http://prisma:4466/cluster/schema"
+            - name: CLUSTER_PUBLIC_KEY
+              value: "GENERATE VIA https://api.cloud.prisma.sh/"
