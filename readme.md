@@ -4,7 +4,7 @@ Repository for demonstrating how to deploy a [Prisma](https://www.prismagraphql.
 
 ## Motivation
 
-In this tutorial, you will learn how to create a Prisma cluster on Kubernetes and deploy your Prisma services to it.
+In this tutorial, you will learn how to deploy a Prisma server on Kubernetes.
 
 [Kubernetes](https://kubernetes.io/) is a container orchestrator, that helps with deploying and scaling of your containerized applications.
 
