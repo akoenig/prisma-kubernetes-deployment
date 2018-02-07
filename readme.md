@@ -358,7 +358,7 @@ prisma cluster add
 ? Please provide a name for your cluster kubernetes
 ```
 
-Okay, you made it! Congratulations, you have successfully deployed a Prisma cluster to a production Kubernetes cluster environment.
+Okay, you made it! Congratulations, you have successfully deployed a Prisma server to a production Kubernetes cluster environment.
 
 ## Author
 
