@@ -19,8 +19,8 @@ spec:
         app: prisma
     spec:
       containers:
-        - name: mysql
-          image: 'prismagraphql/prisma:1.0'
+        - name: prisma
+          image: 'prismagraphql/prisma:1.1'
           ports:
             - name: prisma-4466
               containerPort: 4466
