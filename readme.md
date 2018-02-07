@@ -1,6 +1,6 @@
 # Graphcool Prisma – Kubernetes Deployment Demo
 
-Repository for demonstrating how to deploy a [Prisma](https://www.prismagraphql.com/)-based application to a [Kubernetes](https://kubernetes.io/) cluster.
+Repository for demonstrating how to deploy a [Prisma](https://www.prismagraphql.com/) server to a [Kubernetes](https://kubernetes.io/) cluster.
 
 ## Motivation
 
