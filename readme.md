@@ -14,7 +14,7 @@ The setup in this tutorial assumes that you have a running Kubernetes cluster in
 
 </InfoBox>
 
-## 1. Prerequisites
+## 1 Prerequisites
 
 If you haven't done that before, you need to fulfill the following prerequisites before you can deploy a Prisma cluster on Kubernetes. You need ...
 
@@ -23,7 +23,7 @@ If you haven't done that before, you need to fulfill the following prerequisites
 
 You can go ahead now and create a new directory on your local machine – call it `kubernetes-demo`. This will be the reference directory for our journey.
 
-## 2. Creating a separate namespace
+## 2 Creating a separate namespace
 
 As you may know, Kubernetes comes with a primitive called `namespace`. This allows you to group your applications logically. Before applying the actual namespace on the cluster, we have to write the definition file for it. Inside our project directory, create a file called `namespace.yml` with the following content:
 
@@ -51,7 +51,7 @@ kube-system     Active    1d
 prisma          Active    2s
 ```
 
-## 3. MySQL
+## 3 MySQL
 
 Now where we have a valid namespace in which we can rage, it is time to deploy MySQL. Kubernetes separates between stateless and stateful deployments. A database is by nature a stateful deployment and needs a disk to actually store the data. As described in the intro above, every cloud provider comes with a different mechanism of creating disks. In the case of the [Google Cloud Platform](https://cloud.google.com), you can create a disk by following the following steps:
 
@@ -187,7 +187,7 @@ NAME       TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
 database   ClusterIP   10.3.241.165   <none>        3306/TCP   1m
 ```
 
-## 4. Prisma
+## 4 Prisma
 
 Okay, fair enough, the database is deployed. Next up: Deploying the actual Prisma server which is responsible for serving as an endpoint for the Prisma CLI.
 
@@ -339,7 +339,7 @@ The last step is to configure your local `Prisma CLI` so that you can communicat
 The upcoming last step is also necessary if you want to integrate `prisma deploy` into your CI/CD process.
 </InfoBox>
 
-## 5. Configuring the Prisma CLI
+## 5 Configuration of the Prisma CLI
 
 The Prisma server is running on the Kubernetes cluster and has an internal load balancer. This is a sane security default, because you won't expose the Prisma server to the Internet directly. Instead, you would develop a GraphQL API and deploy it to the Kubernetes cluster as well. You may ask: "Okay, but how to I execute `prisma deploy` in order to populate my data model when I'm not able to communicate with the Prisma server directly=` – That is indeed a very good question! `kubectl` comes with a mechanism that allows forwarding a local port to an application that lives on the Kubernetes cluster.
 
