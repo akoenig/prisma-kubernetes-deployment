@@ -1,20 +1,16 @@
-# Graphcool Prisma – Kubernetes Deployment
+# Graphcool Prisma – Kubernetes Deployment Demo
 
-Example repository for demonstrating how to deploy a [Prisma](https://www.prismagraphql.com/)-based application to a [Kubernetes](https://kubernetes.io/) cluster.
-
-## Table of Contents
-
-**TBD**
+Repository for demonstrating how to deploy a [Prisma](https://www.prismagraphql.com/)-based application to a [Kubernetes](https://kubernetes.io/) cluster.
 
 ## Motivation
 
-In this tutorial, you will learn how to create a Prisma cluster on Kubernetes and deploy your prisma services to it.
+In this tutorial, you will learn how to create a Prisma cluster on Kubernetes and deploy your Prisma services to it.
 
 [Kubernetes](https://kubernetes.io/) is a container orchestrator, that helps with deploying and scaling of your containerized applications.
 
 <InfoBox>
 
-The setup in this tutorial assumes that you have a running Kubernetes cluster in place. There are several providers out there that gives you the possibility to establish and maintain a production grade cluster. This tutorial aims to be provider agnostic, because Kubernetes is the abstraction layer. The only part which differs slightly is the mechanism for creating `persistent volumes`. Here, we use the [Kubernetes Engine](https://cloud.google.com/kubernetes-engine) on the [Google Cloud Platform](https://cloud.google.com/).
+The setup in this tutorial assumes that you have a running Kubernetes cluster in place. There are several providers out there that gives you the possibility to establish and maintain a production grade cluster. This tutorial aims to be provider agnostic, because Kubernetes is actually the abstraction layer. The only part which differs slightly is the mechanism for creating `persistent volumes`. For demonstration purposes, we use the [Kubernetes Engine](https://cloud.google.com/kubernetes-engine) on the [Google Cloud Platform](https://cloud.google.com/) in this tutorial.
 
 </InfoBox>
 
@@ -29,7 +25,7 @@ You can go ahead now and create a new directory on your local machine – call 
 
 ## 2. Creating a separate namespace
 
-As you may know, Kubernetes comes with a primitive called `namespace`. This allows you to group our applications locally. Before creating the actual namespace on the cluster, we have to create the definition file for it. Inside our project directory, create a file called `namespace.yml` with the following content:
+As you may know, Kubernetes comes with a primitive called `namespace`. This allows you to group your applications logically. Before applying the actual namespace on the cluster, we have to write the definition file for it. Inside our project directory, create a file called `namespace.yml` with the following content:
 
 ```yml(path="kubernetes-demo/namespace.yml")
 apiVersion: v1
@@ -38,13 +34,13 @@ metadata:
   name: prisma
 ```
 
-This definition will lead to a new namespace, called `prisma`. Now, with the help of `kubectl`, you can create the namespace by:
+This definition will lead to a new namespace, called `prisma`. Now, with the help of `kubectl`, you can apply the namespace by executing:
 
 ```sh
 kubectl apply -f namespace.yml
 ```
 
-You can perform a `kubectl get namespaces` in order to check if the actual namespace has been created. On a fresh Kubernetes cluster, you should see:
+Afterwards, you can perform a `kubectl get namespaces` in order to check if the actual namespace has been created. You should see the following on a fresh Kubernetes cluster:
 
 ```
 ❯ kubectl get namespaces
@@ -62,7 +58,7 @@ Now where we have a valid namespace in which we can rage, it is time to deploy M
   1. Open the [Google Cloud Console](https://console.cloud.google.com)
   2. Go to the [Disk section](https://console.cloud.google.com/compute/disks) and select `Create`
 
-Please fill the form as follows:
+Please fill the form with the following information:
 
   * **Name:** Should be `db-persistence`
   * **Zone:** The zone in which the Nodes of your Kubernetes cluster are deployed, e.g. `europe-west-1c`
@@ -74,14 +70,14 @@ Please fill the form as follows:
 Select `Create` for actually creating the disk.
 
 <InfoBox>
-To keep things simple, we created the disk manually above. You can automate that process by provision a disk via [Terraform](https://www.terraform.io/) as well.
+To keep things simple, we created the disk above manually. You can automate that process by provision a disk via [Terraform](https://www.terraform.io/) as well, but this is out of the scope of this tutorial.
 </InfoBox>
 
 ### 3.1 Deploying the Pod
 
-Now where we have our disk for the database, it is time for creating the actual deployment definition for MySQL. A short reminder: Kubernetes comes with the primitives of `Pods` and `ReplicationControllers`. A `Pod` is like a "virtual machine" in which a containerized application runs. It gets an own internal IP address and (if configured) disks mounted. The `ReplicationController` is responsible for scheduling your `Pod` on cluster nodes and ensuring that they are running and scaled as configured. In older releases of Kubernetes is was necessary to configure those separately. In recent versions, there is a new definition resource, called `Deployment`. In such a configuration you define, what kind of container image you want to use, how much replicas should be run and, for our case, which disk should be mounted.
+Now where we have our disk for the database, it is time to create the actual deployment definition of our MySQL instance. A short reminder: Kubernetes comes with the primitives of `Pods` and `ReplicationControllers`. A `Pod` is like a "virtual machine" in which a containerized application runs. It gets an own internal IP address and (if configured) disks attached to it. The `ReplicationController` is responsible for scheduling your `Pod` on cluster nodes and ensuring that they are running and scaled as configured. In older releases of Kubernetes it was necessary to configure those separately. In recent versions, there is a new definition resource, called `Deployment`. In such a configuration you define, what kind of container image you want to use, how much replicas should be run and, for our case, which disk should be mounted.
 
-The deployment definition for our MySQL database looks like:
+The deployment definition of our MySQL database looks like:
 
 ```yml(path="kubernetes-demo/database/deployment.yml")
 apiVersion: extensions/v1beta1
@@ -129,7 +125,7 @@ spec:
             pdName: db-persistence
 ```
 
-When applied, this definition schedules one Pod (`replicas: 1`), with a running container based on the image `mysql:5.7`, configures the environment (sets the password of the `root` user to `graphcool`) and mounts the disk `db-persistence` to the path `/var/lib/mysql`. Easy, eh? :)
+When applied, this definition schedules one Pod (`replicas: 1`), with a running container based on the image `mysql:5.7`, configures the environment (sets the password of the `root` user to `graphcool`) and mounts the disk `db-persistence` to the path `/var/lib/mysql`.
 
 To actually apply that definition, execute:
 
@@ -146,11 +142,11 @@ NAME                        READY     STATUS    RESTARTS   AGE
 database-3199294884-93hw4   1/1       Running   0          1m
 ```
 
-Yeah, it runs!
+It runs!
 
 ## 3.2 Deploying the Service
 
-Before diving into this section a short recap as well: Now our MySQL database pod is running and available within the Kubernetes cluster internally. Remember, Kubernetes assigns a local IP address so that another application could access the database. Now imagine a scenario in which your database crashes. Kubernetes will take care of that situation and schedules the Pod again, so that it will be up again. In this case, Kubernetes will assign a different IP address which results in crashes of your applications that are communicating with the database. To avoid such a situation, Kubernetes comes with an internal DNS resolution mechanism. What you do is using a different primitive, called `Service`. A service is an internal load balancer that is reachable via the `service name` and it forwards the traffic to your Pod(s).
+Before diving into this section a short recap as well: Our MySQL database pod is running now and available within the cluster internally. Remember, Kubernetes assigns a local IP address to the `Pod` so that another application could access the database. Now, imagine a scenario in which your database crashes. The cluster management system will take care of that situation and schedules the `Pod` again. In this case, Kubernetes will assign a different IP address which results in crashes of your applications that are communicating with the database. To avoid such a situation, the cluster manager comes with an internal DNS resolution mechanism. You have to use a different primitive, called `Service`, to benefit from that mechanism. A service is an internal load balancer that is reachable via the `service name`. It's task is to forward the traffic to your `Pod(s)` and make it reachable across the cluster by it's name.
 
 A service definition for our MySQL database would look like:
 
@@ -174,7 +170,7 @@ spec:
 The definition would create an internal load balancer with the name `database`. The service is then reachable by this name within the `prisma` namespace. A little explanation about the `spec` section:
 
   * **ports:** Here you map the service port to the actual container port. In this case the mapping is `3306` to `3306`.
-  * **selector:** Kind of an query. The load balancer redirects traffic to Pods which are matching those labels.
+  * **selector:** Kind of a query. The load balancer identifies `Pods` by selecting the ones with the specified labels.
 
 After creating this file, you can apply it with:
 
@@ -193,7 +189,7 @@ database   ClusterIP   10.3.241.165   <none>        3306/TCP   1m
 
 ## 4. Prisma
 
-Okay, fair enough, the database is deployed. Next up: The actual Prisma server which is responsible for serving as an endpoint for the Prisma CLI.
+Okay, fair enough, the database is deployed. Next up: Deploying the actual Prisma server which is responsible for serving as an endpoint for the Prisma CLI.
 
 This application communicates with the already deployed `database` service and uses it as the storage backend. Therefore, the Prisma server is a stateless application because it doesn't need any additional disk storage.
 
@@ -273,7 +269,7 @@ spec:
               value: "GENERATE VIA https://api.cloud.prisma.sh/"
 ```
 
-This configuration looks similar to the deployment configuration of the MySQL database. We tell Kubernetes that it should schedule one replica of the server and define the environment variables accordingly. As you can see, we use the name `database` for each `SQL_*_HOST` variable. This works because of the fact that this Pod will run in the same namespace as the database service – the Kubernetes DNS server makes that possible.
+This configuration looks similar to the deployment configuration of the MySQL database. We tell Kubernetes that it should schedule one replica of the server and define the environment variables accordingly. As you can see, we use the name `database` for each `SQL_*_HOST*` variable. This works because of the fact that this `Pod` will run in the same namespace as the database service – the Kubernetes DNS server makes that possible.
 
 Before applying that definition, we have to generate a public/private-keypair so that the CLI is able to communicate with this Prisma server. Head over to [https://api.cloud.prisma.sh/](https://api.cloud.prisma.sh/) and execute the following query:
 
@@ -294,7 +290,7 @@ Afterwards, we are ready to apply that deployment definition:
 kubectl apply -f prisma/deployment.yml
 ```
 
-As in the previous sections, in order to check that the Prisma server has been scheduled on the Kubernetes cluster, execute:
+As in the previous sections: In order to check that the Prisma server has been scheduled on the Kubernetes cluster, execute:
 
 ```sh
 kubectl get pods --namespace prisma
@@ -335,18 +331,24 @@ kubectl apply -f prisma/service.yml
 
 Okay, done! The Prisma server is now reachable within the Kubernetes cluster via it's name `prisma`.
 
-That's all. Prisma is running on Kubernetes. The last step is to configure your local `Prisma CLI` so that it communicates with the instance on the Kubernetes Cluster.
+That's all. Prisma is running on Kubernetes!
 
-## 5. Configuring your local Prisma CLI
+The last step is to configure your local `Prisma CLI` so that you can communicate with the instance on the Kubernetes Cluster.
 
-The Prisma server is running on the Kubernetes cluster and has an internal load balancer. This is a sane security default, because you won't expose the Prisma server to the Internet directly. Instead, you would develop a GraphQL API and deploy it to the Kubernetes cluster as well. You may ask: "Okay, but how to I execute `prisma deploy` in order to populate my data model when I'm not able to communicate with the Prisma server?` – That is indeed a very good question! `kubectl` comes with a mechanism that allows forwarding a local port to an application that lives on the Kubernetes cluster.
+<InfoBox>
+The upcoming last step is also necessary if you want to integrate `prisma deploy` into your CI/CD process.
+</InfoBox>
+
+## 5. Configuring the Prisma CLI
+
+The Prisma server is running on the Kubernetes cluster and has an internal load balancer. This is a sane security default, because you won't expose the Prisma server to the Internet directly. Instead, you would develop a GraphQL API and deploy it to the Kubernetes cluster as well. You may ask: "Okay, but how to I execute `prisma deploy` in order to populate my data model when I'm not able to communicate with the Prisma server directly=` – That is indeed a very good question! `kubectl` comes with a mechanism that allows forwarding a local port to an application that lives on the Kubernetes cluster.
 
 So everytime you want to communicate with your Prisma server on the Kubernetes cluster, you have to perform the following steps:
 
   1. `kubectl get pods --namespace prisma` to identify the pod name
-  2. `kubectl port-forward --namespace prisma <the-pod-name> 4467:4466` – This will forward from 127.0.0.1:4467 -> 4466
+  2. `kubectl port-forward --namespace prisma <the-pod-name> 4467:4466` – This will forward from 127.0.0.1:4467 -> kubernetes-cluster:4466
 
-The Prisma server is now reachable via `http://localhost:4467`. With this in place, we can configure your local CLI:
+The Prisma server is now reachable via `http://localhost:4467`. With this in place, we can configure the CLI:
 
 ```sh
 prisma cluster add
