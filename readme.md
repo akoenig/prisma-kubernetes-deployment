@@ -116,6 +116,8 @@ spec:
           env:
             - name: MYSQL_ROOT_PASSWORD
               value: "graphcool"
+            - name: MYSQL_DATABASE
+              value: "graphcool"
           ports:
             - name: mysql-3306
               containerPort: 3306
