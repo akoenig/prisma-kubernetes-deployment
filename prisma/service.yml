@@ -12,4 +12,3 @@ spec:
     stage: production
     name: prisma 
     app: prisma
-  type: NodePort
